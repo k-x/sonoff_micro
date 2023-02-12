@@ -24,7 +24,7 @@ if switch.is_off():
 
 # The class does not listen for state changes initiated by other software!
 # If you need to update current state use:
-switch.get_info()
+switch.update()
 # and then one of the is_*() methods
 
 # Available actions:

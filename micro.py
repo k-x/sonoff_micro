@@ -22,39 +22,31 @@ class SonoffMicroSwitch:
         self.api_key = api_key
         self.base_url = ""
         self.switch_is_on = None
-        self.get_info()
+        self.update()
 
-    def get_info(self):
+    def update(self):
         zeroconf = Zeroconf()
         host = f"eWeLink_{self.device_id}._ewelink._tcp.local."
         info = zeroconf.get_service_info(host, host)
 
         # address and port
         ip_address = get_ip_address_as_string(info.addresses[0])
-        port = info.port
-        self.base_url = f"http://{ip_address}:{port}/zeroconf/"
+        self.base_url = f"http://{ip_address}:{info.port}/zeroconf/"
 
         # current state
         iv = info.properties.get(b"iv")
-        data = ""
-        data =  info.properties.get(b"data1") \
-                + info.properties.get(b"data2") \
-                + info.properties.get(b"data3") \
-                + info.properties.get(b"data4")
+        data = "{0}{1}{2}{3}".format(
+            info.properties.get(b"data1"),
+            info.properties.get(b"data2"),
+            info.properties.get(b"data3"),
+            info.properties.get(b"data4")
+        )
 
         decrypted_data = sonoffcrypto.decrypt(data, iv, self.api_key)
         device_info = json.loads(decrypted_data)
         self.switch_is_on = device_info["switches"][0]["switch"] == "on"
 
     def send_request(self, action, params):
-        payload = {
-            "deviceid": self.device_id,
-            "sequence": str(int(time.time() * 1000)),
-        }
-
-        sonoffcrypto.format_encryption_msg(payload, self.api_key, params)
-        data = json.dumps(payload, separators=(",", ":"))
-
         http_session = requests.Session()
         http_session.headers = {
             "Content-Type": "application/json;charset=UTF-8",
@@ -62,7 +54,15 @@ class SonoffMicroSwitch:
             "Accept": "application/json",
         }
 
+        payload = {
+            "deviceid": self.device_id,
+            "sequence": str(int(time.time() * 1000)),
+        }
+
+        sonoffcrypto.format_encryption_msg(payload, self.api_key, params)
+
         url = self.base_url + action
+        data = json.dumps(payload, separators=(",", ":"))
         response = http_session.post(url, data=data)
         return response.json()
 
