@@ -1,6 +1,6 @@
 # SonoffMicroSwitch
 
-Very simple class for switching [Sonoff Micro USB Smart Adaptor](https://sonoff.tech/product/diy-smart-switches/micro/) on and off
+A very simple class for switching [Sonoff Micro USB Smart Adaptor](https://sonoff.tech/product/diy-smart-switches/micro/) on and off
 using RESTful API (HTTP POST requests).
 
 Partially based on https://github.com/mattsaxon/pysonofflan (encrypt and decrypt functions).
