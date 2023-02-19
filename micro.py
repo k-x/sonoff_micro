@@ -35,12 +35,7 @@ class SonoffMicroSwitch:
 
         # current state
         iv = info.properties.get(b"iv")
-        data = "{0}{1}{2}{3}".format(
-            info.properties.get(b"data1"),
-            info.properties.get(b"data2"),
-            info.properties.get(b"data3"),
-            info.properties.get(b"data4")
-        )
+        data = info.properties.get(b"data1") + info.properties.get(b"data2") + info.properties.get(b"data3") + info.properties.get(b"data4")
 
         decrypted_data = sonoffcrypto.decrypt(data, iv, self.api_key)
         device_info = json.loads(decrypted_data)
