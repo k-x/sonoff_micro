@@ -6,18 +6,11 @@ from zeroconf import Zeroconf
 
 
 def get_ip_address_as_string(binary_address):
-    parts = []
-    for i in range(4):
-        parts.append(str(int(binary_address.hex()[(i * 2): (i + 1) * 2], 16)))
-    return ".".join(parts)
+    return ".".join([str(binary_address[i]) for i in range(4)])
 
 
 class SonoffMicroSwitch:
-    def __init__(
-            self,
-            device_id,
-            api_key
-    ) -> None:
+    def __init__(self, device_id, api_key) -> None:
         self.device_id = device_id
         self.api_key = api_key
         self.base_url = ""
@@ -35,9 +28,9 @@ class SonoffMicroSwitch:
 
         # current state
         iv = info.properties.get(b"iv")
-        data = info.properties.get(b"data1") + info.properties.get(b"data2") + info.properties.get(b"data3") + info.properties.get(b"data4")
-
+        data = b"".join([info.properties.get(b"data%i" % i) for i in range(1, 5)])  # concat data1..data4
         decrypted_data = sonoffcrypto.decrypt(data, iv, self.api_key)
+
         device_info = json.loads(decrypted_data)
         self.switch_is_on = device_info["switches"][0]["switch"] == "on"
 
@@ -58,7 +51,7 @@ class SonoffMicroSwitch:
 
         url = self.base_url + action
         data = json.dumps(payload, separators=(",", ":"))
-        response = http_session.post(url, data=data)
+        response = http_session.post(url, data)
         return response.json()
 
     def is_on(self):
